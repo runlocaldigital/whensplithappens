@@ -347,26 +347,26 @@
 			<div id="rss-feed">Loading...</div>
 			<script>
 const feedURL = "https://familylawyerjax.com/feed/";
-  const rssURL = `https://feed2json.org/convert?url=${encodeURIComponent(feedURL)}`;
+  const rssURL = `https://api.rss2json.com/v1/api.json?rss_url=${encodeURIComponent(feedURL)}`;
 
   fetch(rssURL)
     .then(response => response.json())
     .then(data => {
       const feedDiv = document.getElementById("rss-feed");
-      if (!data.items || data.items.length === 0) {
-        feedDiv.innerHTML = "No recent posts.";
+      if (!data || data.status !== "ok" || !data.items || data.items.length === 0) {
+        feedDiv.innerHTML = "No recent posts available.";
         return;
       }
 
       let html = "<h4>Recent News from Sasso Guerrero & Henderlite</h4>";
       data.items.slice(0, 5).forEach(item => {
-        const date = new Date(item.date_published).toLocaleDateString('en-US', {
+        const date = new Date(item.pubDate).toLocaleDateString('en-US', {
           month: 'short', day: 'numeric', year: 'numeric'
         });
-        const desc = item.summary ? item.summary.substring(0, 150) + "..." : "";
+        const desc = item.description ? item.description.substring(0, 150).replace(/<[^>]*>/g, '') + "..." : "";
         html += `
           <div class="rss-item">
-            <a href="${item.url}" target="_blank">${item.title}</a>
+            <a href="${item.link}" target="_blank">${item.title}</a>
             <div class="rss-date">${date}</div>
             <div class="rss-desc">${desc}</div>
           </div>
