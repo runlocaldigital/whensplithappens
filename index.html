@@ -97,28 +97,12 @@
     font-size: 0.9rem; /* Smaller text size */
     color: #6b7280; /* Light gray text color */
   }
-  .rss-item {
-  margin-bottom: 1rem;
-  padding: 0.5rem;
-  border-bottom: 1px solid #eee;
-}
-.rss-item a {
-  font-weight: bold;
-  color: #610B16;
-  text-decoration: none;
-}
-.rss-item a:hover {
-  text-decoration: underline;
-}
-.rss-date {
-  font-size: 0.8rem;
-  color: #6b7280;
-  margin: 0.25rem 0;
-}
-.rss-desc {
-  font-size: 0.9rem;
-  color: #1f2937;
-}
+  #rss-feed h4 { margin-top: 0; font-size: 1.3rem; }
+.rss-item { margin: 1rem 0; padding-bottom: 1rem; border-bottom: 1px solid #eee; }
+.rss-item a { font-weight: 600; color: #610B16; text-decoration: none; font-size: 1.1rem; }
+.rss-item a:hover { text-decoration: underline; }
+.rss-date { font-size: 0.85rem; color: #6b7280; margin: 0.25rem 0; }
+.rss-desc { font-size: 0.95rem; color: #374151; line-height: 1.5; }
 </style>
 <script type="application/ld+json">
 {
@@ -362,48 +346,39 @@
 		<h3>Sasso Guerrero & Henderlite News</h3>
 			<div id="rss-feed">Loading...</div>
 			<script>
-  // Global callback function for JSONP (must be defined before the script tag loads)
-  function rssCallback(data) {
-    console.log("JSONP data received:", data);
-    if (!data || !data.items || data.items.length === 0) {
-      document.getElementById("rss-feed").innerHTML = "No recent posts available at this time.";
-      return;
-    }
+const feedURL = "https://familylawyerjax.com/feed/";
+  const rssURL = `https://feed2json.org/convert?url=${encodeURIComponent(feedURL)}`;
 
-    let html = "";
-    data.items.slice(0, 5).forEach(item => {
-      const pubDate = new Date(item.pubDate).toLocaleDateString();
-      const shortDesc = item.description ? item.description.substring(0, 150) + "..." : "No description available.";
-      html += `
-        <div class="rss-item" style="margin-bottom: 1rem; padding: 0.5rem; border-bottom: 1px solid #eee;">
-          <a href="${item.link}" target="_blank" style="font-weight: bold; color: #610B16;">${item.title}</a>
-          <div class="rss-date" style="font-size: 0.8rem; color: #6b7280; margin: 0.25rem 0;">${pubDate}</div>
-          <div class="rss-desc" style="font-size: 0.9rem; color: #1f2937;">${shortDesc}</div>
-        </div>
-      `;
+  fetch(rssURL)
+    .then(response => response.json())
+    .then(data => {
+      const feedDiv = document.getElementById("rss-feed");
+      if (!data.items || data.items.length === 0) {
+        feedDiv.innerHTML = "No recent posts.";
+        return;
+      }
+
+      let html = "<h4>Recent News from Sasso Guerrero & Henderlite</h4>";
+      data.items.slice(0, 5).forEach(item => {
+        const date = new Date(item.date_published).toLocaleDateString('en-US', {
+          month: 'short', day: 'numeric', year: 'numeric'
+        });
+        const desc = item.summary ? item.summary.substring(0, 150) + "..." : "";
+        html += `
+          <div class="rss-item">
+            <a href="${item.url}" target="_blank">${item.title}</a>
+            <div class="rss-date">${date}</div>
+            <div class="rss-desc">${desc}</div>
+          </div>
+        `;
+      });
+      feedDiv.innerHTML = html;
+    })
+    .catch(err => {
+      console.error("RSS error:", err);
+      document.getElementById("rss-feed").innerHTML = 
+        "News feed unavailable. <a href='https://familylawyerjax.com/'>Visit site →</a>";
     });
-    document.getElementBy2id("rss-feed").innerHTML = html;
-
-    // Clean up: Remove the script tag after loading
-    const scriptTag = document.querySelector('script[src*="rss2json.com"]');
-    if (scriptTag) scriptTag.remove();
-  }
-
-  // Fallback if JSONP fails (e.g., timeout or error)
-  function rssError() {
-    console.error("JSONP load failed");
-    document.getElementById("rss-feed").innerHTML = "Unable to load recent news from Sasso Guerrero & Henderlite. Please visit <a href='https://familylawyerjax.com/'>their site</a> for updates.";
-  }
-
-  // Create and load the JSONP script tag
-  const feedURL = encodeURIComponent("https://familylawyerjax.com/feed/");
-  const jsonpURL = `https://api.rss2json.com/v1/api.json?rss_url=${feedURL}&callback=rssCallback`;
-  const script = document.createElement('script');
-  script.src = jsonpURL;
-  script.onerror = rssError;  // Handle load errors
-  document.head.appendChild(script);
-
-  console.log("JSONP script loaded from:", jsonpURL);
 			</script>
 	</section>
 </div>
